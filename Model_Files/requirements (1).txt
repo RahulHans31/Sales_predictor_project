@@ -1,0 +1,8 @@
+pandas 
+matplotlib 
+seaborn
+scikit-learn 
+mysql-connector-python
+sqlalchemy 
+pymysql
+xgboost
