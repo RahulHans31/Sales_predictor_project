@@ -38,8 +38,7 @@ def get_all_sales_data():
     session = Session()
     try:
         sales_data = session.query(SalesData).all()
-        for record in sales_data:
-            print(record)
+        return sales_data
     except SQLAlchemyError as e:
         print(f"Error fetching sales data: {e}")
     finally:

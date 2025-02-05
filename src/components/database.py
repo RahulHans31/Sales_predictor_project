@@ -11,7 +11,7 @@ def add_sales_data(name, store_revenue, store_size, temp, variety_score, quality
 
 # Function to fetch all sales data
 def fetch_all_sales_data():
-    get_all_sales_data()
+    return get_all_sales_data()
 
 # Function to fetch a specific sales record by ID
 def fetch_sales_data_by_id(sales_id):
