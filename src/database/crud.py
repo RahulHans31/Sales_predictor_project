@@ -50,7 +50,7 @@ def get_sales_data_by_id(sales_id):
     try:
         sales_data = session.query(SalesData).filter(SalesData.id == sales_id).first()
         if sales_data:
-            print(sales_data)
+            return sales_data
         else:
             print(f"No sales data found with ID {sales_id}")
     except SQLAlchemyError as e:

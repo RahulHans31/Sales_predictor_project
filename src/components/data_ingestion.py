@@ -77,11 +77,4 @@ new_sales_data = {
     'location': 'Downtown'
 }
 
-# Ingest the data into the database
-ingest_sales_data(new_sales_data)
 
-# 2. Extract sales data from the database as a Pandas DataFrame
-sales_df = extract_sales_data_to_dataframe()
-
-# Example: Saving the DataFrame to a CSV file
-sales_df.to_csv('sales_data.csv', index=False)

@@ -15,7 +15,7 @@ def fetch_all_sales_data():
 
 # Function to fetch a specific sales record by ID
 def fetch_sales_data_by_id(sales_id):
-    get_sales_data_by_id(sales_id)
+    return get_sales_data_by_id(sales_id)
 
 # Function to update sales data by ID
 def modify_sales_data(sales_id, name=None, store_revenue=None, store_size=None, temp=None, variety_score=None,
@@ -28,4 +28,3 @@ def modify_sales_data(sales_id, name=None, store_revenue=None, store_size=None, 
 # Function to delete a sales record by ID
 def remove_sales_data(sales_id):
     delete_sales_data(sales_id)
-
