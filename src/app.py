@@ -5,6 +5,11 @@ from src.components.database import add_sales_data, fetch_all_sales_data, fetch_
 
 app = FastAPI()
 
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Sales Prediction API!"}
+
 # Pydantic model to validate input data for sales data
 class SalesData(BaseModel):
     name: str

@@ -1,10 +1,10 @@
 import streamlit as st
 import requests
 import pandas as pd
-from src.frontend.utils import format_sales_data
+from utils import format_sales_data
 
 # FastAPI URL
-API_URL = "http://127.0.0.1:8000/sales/"
+API_URL = "https://sales-predictor-project.onrender.com/sales/"
 
 # Streamlit UI
 def main():
