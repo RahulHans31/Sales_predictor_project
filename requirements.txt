@@ -16,3 +16,5 @@ powerbiclient
 sqlalchemy
 mysql-connector-python
 jupyter
+fastapi 
+uvicorn
