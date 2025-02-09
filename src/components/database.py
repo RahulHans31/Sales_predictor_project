@@ -1,5 +1,5 @@
 from src.database.connection import Session
-from src.database.crud import create_sales_data, get_all_sales_data, get_sales_data_by_id, update_sales_data, delete_sales_data
+from src.database.crud import create_sales_data, get_all_sales_data, get_sales_data_by_id, update_sales_data, delete_sales_data ,create_prediction_data, get_prediction_data_by_id , get_prediction_data, create_prediction_by_id, predict_sales
 
 # Function to create a sales record
 def add_sales_data(name, store_revenue, store_size, temp, variety_score, quality_range, 
@@ -28,3 +28,23 @@ def modify_sales_data(sales_id, name=None, store_revenue=None, store_size=None, 
 # Function to delete a sales record by ID
 def remove_sales_data(sales_id):
     delete_sales_data(sales_id)
+
+
+# Function to add prediction data
+def add_prediction_data():
+    return create_prediction_data()
+    
+# Function to add prediction data by ID
+def add_prediction_data_by_id(prediction_id):
+    return create_prediction_by_id(prediction_id) 
+
+# Function to fetch prediction data
+def fetch_prediction_data():
+    return get_prediction_data()
+
+# Function to fetch prediction data by ID
+def fetch_prediction_data_by_id(prediction_id):
+    return get_prediction_data_by_id(prediction_id)
+
+def predict_sales_data(input_data):
+    return predict_sales(input_data)

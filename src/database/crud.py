@@ -144,7 +144,7 @@ def delete_sales_data(sales_id):
 def create_prediction_data():
     Session = Session() 
     try :
-        sales_data_records = session.query(SalesData).all()
+        sales_data_records = Session.query(SalesData).all()
         for record in sales_data_records:
             prediction_data = pd.DataFrame([{
                 'id': record.id,

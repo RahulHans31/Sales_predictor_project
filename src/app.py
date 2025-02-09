@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-from src.components.database import add_sales_data, fetch_all_sales_data, fetch_sales_data_by_id, modify_sales_data, remove_sales_data
+from src.components.database import add_sales_data, fetch_all_sales_data, fetch_sales_data_by_id, modify_sales_data, remove_sales_data , predict_sales_data , add_prediction_data , fetch_prediction_data , fetch_prediction_data_by_id , add_prediction_data_by_id
 
 app = FastAPI()
 
@@ -26,6 +26,10 @@ class SalesData(BaseModel):
     weekend_sales: float
     total_sales: float
     location: str
+    
+class PredictionData(BaseModel):
+    id: int
+    prediction: float
 
 @app.post("/sales/", status_code=201)
 def create_sales(sales_data: SalesData):
@@ -79,3 +83,40 @@ def delete_sales(sales_id: int):
         return {"message": "Sales data deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting sales data: {e}")
+    
+@app.get("/predict/" , response_model=List[PredictionData])
+def get_prediction_data():
+    try:
+        prediction = fetch_prediction_data()
+        return prediction
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching prediction data: {e}")
+    
+@app.get("/predict/{sales_id}" , response_model=PredictionData)
+def get_prediction_data_by_id(sales_id: int):
+    try:
+        prediction = fetch_prediction_data_by_id(sales_id)
+        if prediction:
+            return prediction
+        else:
+            raise HTTPException(status_code=404, detail="Prediction data not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching prediction data: {e}")   
+    
+@app.post("/predict/" , status_code=201)
+def create_prediction_data():
+    try:
+        add_prediction_data()
+        return {"message": "Prediction data added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding prediction data: {e}")
+    
+@app.post("/predict/{sales_id}" , status_code=201)
+def update_prediction_data(sales_id: int, prediction_data: PredictionData):
+    try:
+        add_prediction_data_by_id(sales_id)
+        return {"message": "Prediction data added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding prediction data: {e}")
+    
+
