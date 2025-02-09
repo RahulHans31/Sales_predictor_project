@@ -2,9 +2,9 @@ from src.database.connection import Session
 from sqlalchemy.exc import SQLAlchemyError
 from src.database.schemas import SalesData , PredictionData
 import pandas as pd
-import pickle
+import joblib
 
-pipeline = pickle.load(open('Model_Files/model.pkl', 'rb'))
+pipeline = joblib.load(open('Model_Files/model.pkl', 'rb'))
 
 def preprocess_data(df):
         
@@ -141,9 +141,9 @@ def delete_sales_data(sales_id):
 
 
 def create_prediction_data():
-    Session = Session() 
+    session = Session() 
     try :
-        sales_data_records = Session.query(SalesData).all()
+        sales_data_records = session.query(SalesData).all()
         for record in sales_data_records:
             prediction_data = pd.DataFrame([{
                 'id': record.id,
@@ -169,15 +169,15 @@ def create_prediction_data():
                 predicted_sales=predicted_sales
             )
             
-            Session.add(prediction)
+            session.add(prediction)
         
-        Session.commit()
+        session.commit()
         
     except SQLAlchemyError as e:
-        Session.rollback()
+        session.rollback()
         print(f"Error adding prediction data: {e}")
     finally:
-        Session.close()
+        session.close()
         
             
 def create_prediction_by_id(sales_id):
@@ -205,7 +205,7 @@ def create_prediction_by_id(sales_id):
             }])
         
         cleaned_data = preprocess_data(prediction_data)
-        predicted_sales = pipeline.predict(cleaned_data)[0]
+        predicted_sales = pipeline.predict(cleaned_data)
         
         prediction = PredictionData(
             id=record.id,  # Link to the SalesData ID
