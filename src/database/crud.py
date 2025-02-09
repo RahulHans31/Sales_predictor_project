@@ -223,7 +223,7 @@ def create_prediction_by_id(sales_id):
         Session.close()
         
 
-def get_all_predictions():
+def get_prediction_data():
     session = Session()
     try:
         # Fetch all prediction records
@@ -231,6 +231,19 @@ def get_all_predictions():
         return predictions
     except SQLAlchemyError as e:
         print(f"Error fetching predictions: {e}")
+    finally:
+        session.close()
+        
+def get_prediction_data_by_id(prediction_id):  
+    session = Session() 
+    try:
+        prediction = session.query(PredictionData).filter(PredictionData.id == prediction_id).first()
+        if prediction:
+            return prediction
+        else:
+            print(f"No prediction data found with ID {prediction_id}")
+    except SQLAlchemyError as e:
+        print(f"Error fetching prediction data: {e}")
     finally:
         session.close()
         

@@ -30,7 +30,7 @@ def remove_sales_data(sales_id):
     delete_sales_data(sales_id)
 
 
-# Function to add prediction data
+# Function to add prediction data 1
 def add_prediction_data():
     return create_prediction_data()
     
