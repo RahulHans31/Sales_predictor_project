@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, CheckConstraint
+from sqlalchemy import Column, Integer, String, Float, CheckConstraint , ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import expression
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -63,3 +64,18 @@ class SalesData(Base):
                f"discounts={self.discounts}, weekday_sales={self.weekday_sales}, " \
                f"weekend_sales={self.weekend_sales}, total_sales={self.total_sales}, " \
                f"location={self.location})"
+
+class PredictionData(Base):
+    __tablename__ = 'prediction_data'
+
+    id = Column(Integer, ForeignKey('sales_data.id'), primary_key=True)  # Link to SalesData.id
+    predicted_sales = Column(Float, nullable=False)
+
+    # Create a relationship for easy access to the related SalesData
+    sales_data = relationship('SalesData', back_populates='predictions')
+
+    def __repr__(self):
+        return f"PredictionData(id={self.id}, predicted_sales={self.predicted_sales})"
+
+# Add a relationship back to SalesData
+SalesData.predictions = relationship('PredictionData', back_populates='sales_data', cascade="all, delete-orphan")

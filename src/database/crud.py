@@ -1,6 +1,24 @@
 from src.database.connection import Session
 from sqlalchemy.exc import SQLAlchemyError
-from src.database.schemas import SalesData
+from src.database.schemas import SalesData , PredictionData
+from src.components.data_transformation import data_cleaning_pipeline
+import pandas as pd
+import pickle
+
+pipeline = pickle.load(open('Model_Files/model.pkl', 'rb'))
+
+def preprocess_data(df):
+        
+    # Drop irrelevant columns
+    df_cleaned = df.drop(columns=["id", "Name", "Weekend_sales", "Weekday_sales"] , errors='ignore')
+
+    # Convert categorical variables into numeric using one-hot encoding
+    df_cleaned = pd.get_dummies(df_cleaned, columns=["Store_size", "Availability", "Location", "Temp"], drop_first=True)
+
+    # Handle missing values by filling with the median
+    df_cleaned = df_cleaned.fillna(df_cleaned.median(numeric_only=True))
+    return df_cleaned
+
 
 # CREATE: Add a new sales record to the database
 def create_sales_data(name, store_revenue, store_size, temp, variety_score, quality_range, 
@@ -121,3 +139,114 @@ def delete_sales_data(sales_id):
         print(f"Error deleting sales data: {e}")
     finally:
         session.close()
+
+
+def create_prediction_data():
+    Session = Session() 
+    try :
+        sales_data_records = session.query(SalesData).all()
+        for record in sales_data_records:
+            prediction_data = pd.DataFrame([{
+                'id': record.id,
+                'Name': record.name,
+                'Store_revenue': record.store_revenue,
+                'Store_size': record.store_size,
+                'Temp': record.temp,
+                'Variety_score': record.variety_score,
+                'Quality_range': record.quality_range,
+                'Shop_area': record.shop_area,
+                'City_tier': record.city_tier,
+                'Availability': record.availability,
+                'Discounts': record.discounts,
+                'Weekday_sales': record.weekday_sales,
+                'Weekend_sales': record.weekend_sales,
+                'Location': record.location
+            }])
+            cleaned_data = preprocess_data(prediction_data)
+            predicted_sales = pipeline.predict(cleaned_data)[0]
+            
+            prediction = PredictionData(
+                id=record.id,  # Link to the SalesData ID
+                predicted_sales=predicted_sales
+            )
+            
+            Session.add(prediction)
+        
+        Session.commit()
+        
+    except SQLAlchemyError as e:
+        Session.rollback()
+        print(f"Error adding prediction data: {e}")
+    finally:
+        Session.close()
+        
+            
+def create_prediction_by_id(sales_id):
+    session = Session()
+    try:
+        record = session.query(SalesData).filter(SalesData.id == sales_id).first()
+        if not record:
+            print(f"No sales data found with ID {sales_id}")
+            return
+        prediction_data = pd.DataFrame([{
+                'id': record.id,
+                'Name': record.name,
+                'Store_revenue': record.store_revenue,
+                'Store_size': record.store_size,
+                'Temp': record.temp,
+                'Variety_score': record.variety_score,
+                'Quality_range': record.quality_range,
+                'Shop_area': record.shop_area,
+                'City_tier': record.city_tier,
+                'Availability': record.availability,
+                'Discounts': record.discounts,
+                'Weekday_sales': record.weekday_sales,
+                'Weekend_sales': record.weekend_sales,
+                'Location': record.location
+            }])
+        
+        cleaned_data = preprocess_data(prediction_data)
+        predicted_sales = pipeline.predict(cleaned_data)[0]
+        
+        prediction = PredictionData(
+            id=record.id,  # Link to the SalesData ID
+            predicted_sales=predicted_sales
+        )
+        
+        Session.add(prediction)
+    
+        Session.commit()
+        
+    except SQLAlchemyError as e:
+        Session.rollback()
+        print(f"Error adding prediction data: {e}")
+    finally:
+        Session.close()
+        
+
+def get_all_predictions():
+    session = Session()
+    try:
+        # Fetch all prediction records
+        predictions = session.query(PredictionData).all()
+        return predictions
+    except SQLAlchemyError as e:
+        print(f"Error fetching predictions: {e}")
+    finally:
+        session.close()
+        
+def predict_sales(input_data):
+    try:
+        # Prepare the input data (convert to DataFrame)
+        prediction_data = pd.DataFrame([input_data])
+
+        # Preprocess the data
+        cleaned_data = preprocess_data(prediction_data)
+
+        # Predict sales using the model
+        predicted_sales = pipeline.predict(cleaned_data)[0]
+        return predicted_sales
+
+    except Exception as e:
+        print(f"Error predicting sales: {e}")
+        return None

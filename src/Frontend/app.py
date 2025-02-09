@@ -12,7 +12,7 @@ def main():
     
     # Sidebar for navigation
     st.sidebar.header("Sales Data Operations")
-    choice = st.sidebar.selectbox("Select Operation", ["Add Sales Data", "View All Sales", "View Sales by ID", "Update Sales Data", "Delete Sales Data"])
+    choice = st.sidebar.selectbox("Select Operation", ["Add Sales Data", "View All Sales", "View Sales by ID", "Update Sales Data", "Delete Sales Data" , "Predict Sales Data"])
 
     # Add Sales Data Form
     if choice == "Add Sales Data":
