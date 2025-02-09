@@ -1,7 +1,6 @@
 from src.database.connection import Session
 from sqlalchemy.exc import SQLAlchemyError
 from src.database.schemas import SalesData , PredictionData
-from src.components.data_transformation import data_cleaning_pipeline
 import pandas as pd
 import pickle
 
