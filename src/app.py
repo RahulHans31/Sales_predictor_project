@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-from src.components.database import add_sales_data, fetch_all_sales_data, fetch_sales_data_by_id, modify_sales_data, remove_sales_data , predict_sales_data , add_prediction_data , fetch_prediction_data , fetch_prediction_data_by_id , add_prediction_data_by_id
+from src.components.database import add_sales_data, fetch_all_sales_data, fetch_sales_data_by_id, modify_sales_data, remove_sales_data , predict_sales_data , add_prediction_data , fetch_prediction_data , fetch_prediction_data_by_id , add_prediction_data_by_id , train_ml_model
 
 app = FastAPI()
 
@@ -29,7 +29,7 @@ class SalesData(BaseModel):
     
 class PredictionData(BaseModel):
     id: int
-    prediction: float
+    predicted_sales: float
 
 @app.post("/sales/", status_code=201)
 def create_sales(sales_data: SalesData):
@@ -112,7 +112,7 @@ def create_prediction_data():
         raise HTTPException(status_code=500, detail=f"Error adding prediction data: {e}")
     
 @app.post("/predict/{sales_id}" , status_code=201)
-def update_prediction_data(sales_id: int, prediction_data: PredictionData):
+def update_prediction_data(sales_id: int):
     try:
         add_prediction_data_by_id(sales_id)
         return {"message": "Prediction data added successfully"}
@@ -120,3 +120,11 @@ def update_prediction_data(sales_id: int, prediction_data: PredictionData):
         raise HTTPException(status_code=500, detail=f"Error adding prediction data: {e}")
     
 
+@app.post('/train/' , status_code=200)
+def train_model_route():
+    try:
+        train_ml_model()
+        return {"message": "Model trained successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error training model 1 : {e}")
+    

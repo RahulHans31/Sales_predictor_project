@@ -68,14 +68,9 @@ class SalesData(Base):
 class PredictionData(Base):
     __tablename__ = 'prediction_data'
 
-    id = Column(Integer, ForeignKey('sales_data.id'), primary_key=True)  # Link to SalesData.id
-    predicted_sales = Column(Float, nullable=False)
+    id = Column(Integer, primary_key=True)  # Link to SalesData.id
+    predicted_sales = Column(Float)
 
-    # Create a relationship for easy access to the related SalesData
-    sales_data = relationship('SalesData', back_populates='predictions')
 
     def __repr__(self):
         return f"PredictionData(id={self.id}, predicted_sales={self.predicted_sales})"
-
-# Add a relationship back to SalesData
-SalesData.predictions = relationship('PredictionData', back_populates='sales_data', cascade="all, delete-orphan")

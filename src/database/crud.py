@@ -2,14 +2,16 @@ from src.database.connection import Session
 from sqlalchemy.exc import SQLAlchemyError
 from src.database.schemas import SalesData , PredictionData
 import pandas as pd
-import joblib
+import pickle
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 
-pipeline = joblib.load(open('Model_Files/model.pkl', 'rb'))
+pipeline = pickle.load(open('src/model.pkl', 'rb'))
 
 def preprocess_data(df):
-        
     # Drop irrelevant columns
-    df_cleaned = df.drop(columns=["id", "Name", "Weekend_sales", "Weekday_sales"] , errors='ignore')
+    df_cleaned = df.drop(columns=["id", "Name", "Weekend_sales", "Weekday_sales"], errors='ignore')
 
     # Convert categorical variables into numeric using one-hot encoding
     df_cleaned = pd.get_dummies(df_cleaned, columns=["Store_size", "Availability", "Location", "Temp"], drop_first=True)
@@ -17,6 +19,72 @@ def preprocess_data(df):
     # Handle missing values by filling with the median
     df_cleaned = df_cleaned.fillna(df_cleaned.median(numeric_only=True))
     return df_cleaned
+
+def train_model():
+    session = Session()
+    try:
+        records = session.query(SalesData).all()
+
+        # Convert to DataFrame
+        data = pd.DataFrame([{
+            'Store_revenue': record.store_revenue,
+            'Store_size': record.store_size,
+            'Temp': record.temp,
+            'Variety_score': record.variety_score,
+            'Quality_range': record.quality_range,
+            'Shop_area': record.shop_area,
+            'City_tier': record.city_tier,
+            'Availability': record.availability,
+            'Discounts': record.discounts,
+            'Location': record.location,
+            'Total_sales': record.total_sales
+        } for record in records])
+        print('done')
+
+        # Preprocess data
+        cleaned_data = preprocess_data(data)
+        print('done')
+        # Split features and target
+        X = cleaned_data.drop(columns=['Total_sales'], errors='ignore')
+        y = cleaned_data['Total_sales']
+        print('done')
+        # Train-test split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        print('done')
+        model = pickle.load(open('src/model.pkl', 'rb'))
+        # # Train the Random Forest Regressor model
+        # model = RandomForestRegressor(random_state=42)
+        # model.fit(X_train, y_train)
+        # print('done')
+
+        # Evaluate the model
+        # y_pred = model.predict(X_test)
+        # mse = mean_squared_error(y_test, y_pred)
+        # print(f"Model trained successfully with MSE: {mse}")
+        # print('done')
+
+        # Save the model as a pickle file
+        # with open('src/model.pkl', 'wb') as file:
+        #     pickle.dump(model, file)
+
+        # Predict and store predictions in the database
+        data['Predicted_sales'] = model.predict(X)
+
+        for i, record in data.iterrows():
+            prediction = PredictionData(
+                id=records[i].id,  # Link to the SalesData ID
+                predicted_sales=record['Predicted_sales']
+            )
+            session.add(prediction)
+
+        session.commit()
+        print("Predictions saved successfully!")
+
+    except SQLAlchemyError as e:
+        session.rollback()
+        print(f"Error training model: {e}")
+    finally:
+        session.close()
 
 
 # CREATE: Add a new sales record to the database
@@ -146,23 +214,19 @@ def create_prediction_data():
         sales_data_records = session.query(SalesData).all()
         for record in sales_data_records:
             prediction_data = pd.DataFrame([{
-                'id': record.id,
-                'Name': record.name,
                 'Store_revenue': record.store_revenue,
-                'Store_size': record.store_size,
-                'Temp': record.temp,
-                'Variety_score': record.variety_score,
-                'Quality_range': record.quality_range,
-                'Shop_area': record.shop_area,
-                'City_tier': record.city_tier,
-                'Availability': record.availability,
-                'Discounts': record.discounts,
-                'Weekday_sales': record.weekday_sales,
-                'Weekend_sales': record.weekend_sales,
-                'Location': record.location
+            'Store_size': record.store_size,
+            'Temp': record.temp,
+            'Variety_score': record.variety_score,
+            'Quality_range': record.quality_range,
+            'Shop_area': record.shop_area,
+            'City_tier': record.city_tier,
+            'Availability': record.availability,
+            'Discounts': record.discounts,
+            'Location': record.location
             }])
             cleaned_data = preprocess_data(prediction_data)
-            predicted_sales = pipeline.predict(cleaned_data)[0]
+            predicted_sales = pipeline.predict(cleaned_data)
             
             prediction = PredictionData(
                 id=record.id,  # Link to the SalesData ID
@@ -188,20 +252,16 @@ def create_prediction_by_id(sales_id):
             print(f"No sales data found with ID {sales_id}")
             return
         prediction_data = pd.DataFrame([{
-                'id': record.id,
-                'Name': record.name,
                 'Store_revenue': record.store_revenue,
-                'Store_size': record.store_size,
-                'Temp': record.temp,
-                'Variety_score': record.variety_score,
-                'Quality_range': record.quality_range,
-                'Shop_area': record.shop_area,
-                'City_tier': record.city_tier,
-                'Availability': record.availability,
-                'Discounts': record.discounts,
-                'Weekday_sales': record.weekday_sales,
-                'Weekend_sales': record.weekend_sales,
-                'Location': record.location
+            'Store_size': record.store_size,
+            'Temp': record.temp,
+            'Variety_score': record.variety_score,
+            'Quality_range': record.quality_range,
+            'Shop_area': record.shop_area,
+            'City_tier': record.city_tier,
+            'Availability': record.availability,
+            'Discounts': record.discounts,
+            'Location': record.location
             }])
         
         cleaned_data = preprocess_data(prediction_data)
@@ -212,15 +272,15 @@ def create_prediction_by_id(sales_id):
             predicted_sales=predicted_sales
         )
         
-        Session.add(prediction)
+        session.add(prediction)
     
-        Session.commit()
+        session.commit()
         
     except SQLAlchemyError as e:
-        Session.rollback()
+        session.rollback()
         print(f"Error adding prediction data: {e}")
     finally:
-        Session.close()
+        session.close()
         
 
 def get_prediction_data():
