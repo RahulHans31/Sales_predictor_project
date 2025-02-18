@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-from src.components.database import add_sales_data, fetch_all_sales_data, fetch_sales_data_by_id, modify_sales_data, remove_sales_data , predict_sales_data , add_prediction_data , fetch_prediction_data , fetch_prediction_data_by_id , add_prediction_data_by_id , train_ml_model
+from src.components.database import add_sales_data, fetch_all_sales_data, fetch_sales_data_by_id, modify_sales_data, remove_sales_data , predict_sales_data , add_prediction_data , fetch_prediction_data , fetch_prediction_data_by_id , add_prediction_data_by_id , train_ml_model , predict_sales_and_add
 
 app = FastAPI()
 
@@ -128,3 +128,12 @@ def train_model_route():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error training model 1 : {e}")
     
+@app.post("/predict_and_add/", status_code=201)
+def create_sales(sales_data: SalesData):
+    try:
+        predicted_sales = predict_sales_and_add(
+            sales_data
+        )
+        return {"message": "Sales data added successfully" , "predicted_sales": predicted_sales[0]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding sales data: {e}")

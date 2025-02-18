@@ -14,10 +14,25 @@ def preprocess_data(df):
     df_cleaned = df.drop(columns=["id", "Name", "Weekend_sales", "Weekday_sales"], errors='ignore')
 
     # Convert categorical variables into numeric using one-hot encoding
-    df_cleaned = pd.get_dummies(df_cleaned, columns=["Store_size", "Availability", "Location", "Temp"], drop_first=True)
+    categorical_cols = ["Store_size", "Availability", "Location", "Temp"]
+    df_cleaned = pd.get_dummies(df_cleaned, columns=categorical_cols, drop_first=True, dtype=int)
 
     # Handle missing values by filling with the median
     df_cleaned = df_cleaned.fillna(df_cleaned.median(numeric_only=True))
+
+    # Define expected columns from model training
+    expected_columns = ['Store_revenue', 'Variety_score', 'Quality_range', 'Shop_area', 'City_tier', 
+                         'Discounts', 'Store_size_Mid', 'Store_size_Small', 'Availability_Online', 
+                         'Location_Outskirts', 'Temp_Low', 'Temp_Mid', 'Temp_low']
+
+    # Add missing columns with default value 0
+    for col in expected_columns:
+        if col not in df_cleaned.columns:
+            df_cleaned[col] = 0
+
+    # Drop any extra columns not seen during model training
+    df_cleaned = df_cleaned.reindex(columns=expected_columns, fill_value=0)
+
     return df_cleaned
 
 def train_model():
@@ -322,3 +337,27 @@ def predict_sales(input_data):
     except Exception as e:
         print(f"Error predicting sales: {e}")
         return None
+    
+def predict_and_add(record):
+    
+    prediction_data = pd.DataFrame([{
+            'Store_revenue': record.store_revenue,
+        'Store_size': record.store_size,
+        'Temp': record.temp,
+        'Variety_score': record.variety_score,
+        'Quality_range': record.quality_range,
+        'Shop_area': record.shop_area,
+        'City_tier': record.city_tier,
+        'Availability': record.availability,
+        'Discounts': record.discounts,
+        'Location': record.location
+        }])
+    
+    cleaned_data = preprocess_data(prediction_data)
+    predicted_sales = pipeline.predict(cleaned_data)
+    print(predicted_sales)
+    
+    
+    return predicted_sales
+    
+

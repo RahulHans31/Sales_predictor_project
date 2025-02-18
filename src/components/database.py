@@ -1,5 +1,5 @@
 from src.database.connection import Session
-from src.database.crud import create_sales_data, get_all_sales_data, get_sales_data_by_id, update_sales_data, delete_sales_data ,create_prediction_data, get_prediction_data_by_id , get_prediction_data, create_prediction_by_id, predict_sales , train_model
+from src.database.crud import create_sales_data, get_all_sales_data, get_sales_data_by_id, update_sales_data, delete_sales_data ,create_prediction_data, get_prediction_data_by_id , get_prediction_data, create_prediction_by_id, predict_sales , train_model , predict_and_add
 
 # Function to create a sales record
 def add_sales_data(name, store_revenue, store_size, temp, variety_score, quality_range, 
@@ -51,3 +51,6 @@ def predict_sales_data(input_data):
 
 def train_ml_model():
     return train_model()
+
+def predict_sales_and_add(input_data):
+    return predict_and_add(input_data)

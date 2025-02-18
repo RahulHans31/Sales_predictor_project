@@ -4,7 +4,8 @@ import pandas as pd
 from utils import format_sales_data
 
 # FastAPI URL
-API_URL = "https://sales-predictor-project.onrender.com/sales/"
+API_URL = "http://127.0.0.1:8000/sales"
+Prediction_URL = "http://127.0.0.1:8000/predict_and_add"
 
 # Streamlit UI
 def main():
@@ -167,11 +168,11 @@ def predict_sales_data():
             "total_sales": total_sales,
             "location": location
         }
-        response = requests.post(API_URL, json=payload)
-        if response.status_code == 200:
-            sales_data = response.json()
-            formatted_data = format_sales_data(sales_data)
-            st.json(formatted_data)
+        response = requests.post(Prediction_URL, json=payload)
+        if response.status_code == 201:
+            response_text = response.json()
+            formatted_data = response_text["predicted_sales"]
+            st.success(f"Predicted Sales: {formatted_data}")
         else:
             st.error(f"Error: {response.json()['detail']}")
 
