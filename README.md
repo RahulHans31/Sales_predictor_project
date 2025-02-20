@@ -47,7 +47,7 @@ By leveraging MySQL for data storage, machine learning for predictions, and Powe
 ## How to Use
 1. **Clone the Repository:**  
    ```bash
-   git clone https://github.com/yourusername/sales-prediction.git
+   git clone https://github.com/RahulHans31/sales-prediction.git
    cd sales-prediction
    ```
 
